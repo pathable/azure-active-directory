@@ -1,8 +1,8 @@
-AzureAd.whitelistedFields = ['objectId', 'userPrincipalName', 'mail', 'displayName', 'surname', 'givenName'];
+AzureAd.whitelistedFields = ['id', 'userPrincipalName', 'mail', 'displayName', 'surname', 'givenName'];
 
 OAuth.registerService('azureAd', 2, null, function(query) {
 
-    var tokens = getTokensFromCode(AzureAd.resources.graph.resourceUri, query.code);
+    var tokens = getTokensFromCode(query.code);
     var graphUser = AzureAd.resources.graph.getUser(tokens.accessToken)
     var serviceData = {
         accessToken: tokens.accessToken,
@@ -10,10 +10,6 @@ OAuth.registerService('azureAd', 2, null, function(query) {
     };
 
     var fields = _.pick(graphUser, AzureAd.whitelistedFields);
-
-    //must re-write the objectId field to id - meteor expects a field named "id"
-    fields.id = fields.objectId; //we should add
-    delete fields.objectId;
 
     _.extend(serviceData, fields);
 
@@ -42,8 +38,8 @@ OAuth.registerService('azureAd', 2, null, function(query) {
 });
 
 
-function getTokensFromCode(resource, code) {
-    return AzureAd.http.getAccessTokensBase(resource, {
+function getTokensFromCode(code) {
+    return AzureAd.http.getAccessTokensBase({
         grant_type: 'authorization_code',
         code : code
     });

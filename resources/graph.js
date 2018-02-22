@@ -1,11 +1,10 @@
 AzureAd.resources.graph = {};
 AzureAd.resources.graph.friendlyName = "graph";
-AzureAd.resources.graph.resourceUri = "https://graph.windows.net/";
+AzureAd.resources.graph.resourceUri = "https://graph.microsoft.com/";
 
 AzureAd.resources.graph.getUser = function (accessToken) {
-    var config = AzureAd.getConfiguration();
-    var url = "https://graph.windows.net/myorganization/me?api-version=2013-11-08";
-
+    var url = 'https://graph.microsoft.com/v1.0/me';
+    
     return AzureAd.http.callAuthenticated("GET", url, accessToken);
 };
 
