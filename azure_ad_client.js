@@ -19,25 +19,35 @@ AzureAd.requestCredential = function (options, credentialRequestCompleteCallback
         return;
     }
 
-    var prompt = '&prompt=login';
-    if (typeof options.loginPrompt === 'string') {
-        if (options.loginPrompt === "")
-            prompt = '';
-        else
-            prompt = '&prompt=' + options.loginPrompt;
-    }
+    var tenant = options.tenant || 'common';
+    var scope = (options.scope) ? options.scope.join(' ') : 'user.read';
 
     var loginStyle = OAuth._loginStyle('azureAd', config, options);
     var credentialToken = Random.secret();
 
-    var baseUrl = "https://login.windows.net/common/oauth2/authorize?";
-    var loginUrl = baseUrl +
-        'api-version=1.0&' +
-        '&response_type=code' +
-        prompt +
-        '&client_id=' + config.clientId +
-        '&state=' + OAuth._stateParam(loginStyle, credentialToken) +
-        '&redirect_uri=' + OAuth._redirectUri('azureAd', config);
+    var queryParams = {
+        client_id: config.clientId,
+        response_type: 'code',
+        redirect_uri: OAuth._redirectUri('azureAd', config),
+        scope: scope,
+        response_mode: 'query',
+        state: OAuth._stateParam(loginStyle, credentialToken),
+        prompt: options.loginPrompt || 'login',
+    };
+
+    if (options.login_hint) {
+        queryParams.login_hint = options.login_hint;
+    }
+    if (options.domain_hint) {
+        queryParams.domain_hint = options.domain_hint;
+    }
+
+    var queryParamsEncoded = _.map(queryParams, function(val, key) {
+        return key + '=' + encodeURIComponent(val);
+    });
+
+    var baseUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?`;
+    var loginUrl = baseUrl + queryParamsEncoded.join('&');
 
     OAuth.launchLogin({
         loginService: "azureAd",
