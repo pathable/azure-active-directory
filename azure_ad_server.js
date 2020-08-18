@@ -1,51 +1,62 @@
-AzureAd.whitelistedFields = ['id', 'userPrincipalName', 'mail', 'displayName', 'surname', 'givenName'];
+AzureAd.allowlistFields = [
+  'id',
+  'userPrincipalName',
+  'mail',
+  'displayName',
+  'surname',
+  'givenName',
+];
 
-OAuth.registerService('azureAd', 2, null, function(query) {
+const hasOwn = Object.prototype.hasOwnProperty;
 
-    var tokens = getTokensFromCode(query.code);
-    var graphUser = AzureAd.resources.graph.getUser(tokens.accessToken)
-    var serviceData = {
-        accessToken: tokens.accessToken,
-        expiresAt: (+new Date) + (1000 * tokens.expiresIn)
-    };
-
-    var fields = _.pick(graphUser, AzureAd.whitelistedFields);
-
-    _.extend(serviceData, fields);
-
-    // only set the token in serviceData if it's there. this ensures
-    // that we don't lose old ones (since we only get this on the first
-    // log in attempt)
-    if (tokens.refreshToken)
-        serviceData.refreshToken = tokens.refreshToken;
-
-    var emailAddress = graphUser.mail || graphUser.userPrincipalName;
-    
-    var options = {
-        profile: {
-            name: graphUser.displayName
-        }
-    };
-
-    if (!!emailAddress){
-        options.emails = [{
-            address : emailAddress,
-            verified: true
-        }];
-    }
-
-    return { serviceData: serviceData, options: options };
-});
-
+AzureAd.retrieveCredential = (credentialToken, credentialSecret) =>
+  OAuth.retrieveCredential(credentialToken, credentialSecret);
 
 function getTokensFromCode(code) {
-    return AzureAd.http.getAccessTokensBase({
-        grant_type: 'authorization_code',
-        code : code
-    });
-};
+  return AzureAd.http.getAccessTokensBase({
+    grant_type: 'authorization_code',
+    code,
+  });
+}
 
+OAuth.registerService('azureAd', 2, null, query => {
+  const tokens = getTokensFromCode(query.code);
+  const graphUser = AzureAd.resources.graph.getUser(tokens.accessToken);
+  const serviceData = {
+    accessToken: tokens.accessToken,
+    expiresAt: +new Date() + 1000 * tokens.expiresIn,
+  };
 
-AzureAd.retrieveCredential = function(credentialToken, credentialSecret) {
-    return OAuth.retrieveCredential(credentialToken, credentialSecret);
-};
+  const fields = {};
+  AzureAd.allowlistFields.forEach(allowlistedField => {
+    if (hasOwn.call(graphUser, allowlistedField)) {
+      fields[allowlistedField] = graphUser[allowlistedField];
+    }
+  });
+
+  Object.assign(serviceData, fields);
+
+  // only set the token in serviceData if it's there. this ensures
+  // that we don't lose old ones (since we only get this on the first
+  // log in attempt)
+  if (tokens.refreshToken) serviceData.refreshToken = tokens.refreshToken;
+
+  const emailAddress = graphUser.mail || graphUser.userPrincipalName;
+
+  const options = {
+    profile: {
+      name: graphUser.displayName,
+    },
+  };
+
+  if (emailAddress) {
+    options.emails = [
+      {
+        address: emailAddress,
+        verified: true,
+      },
+    ];
+  }
+
+  return { serviceData, options };
+});

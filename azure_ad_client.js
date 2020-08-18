@@ -3,58 +3,53 @@
 // @param credentialRequestCompleteCallback {Function} Callback function to call on
 //   completion. Takes one argument, credentialToken on success, or Error on
 //   error.
-AzureAd.requestCredential = function (options, credentialRequestCompleteCallback) {
-    // support both (options, callback) and (callback).
-    if (!credentialRequestCompleteCallback && typeof options === 'function') {
-        credentialRequestCompleteCallback = options;
-        options = {};
-    } else if (!options) {
-        options = {};
-    }
+AzureAd.requestCredential = (...args) => {
+  // support both (options, callback) and (callback).
+  const options = typeof args[0] === 'function' ? {} : args[0];
+  const callback = typeof args[0] === 'function' ? args[0] : args[1];
 
-    var config = AzureAd.getConfiguration(true);
-    if (!config) {
-        credentialRequestCompleteCallback && credentialRequestCompleteCallback(
-            new ServiceConfiguration.ConfigError());
-        return;
-    }
+  const config = AzureAd.getConfiguration(true);
+  if (!config) {
+    callback && callback(new ServiceConfiguration.ConfigError());
+    return;
+  }
 
-    var tenant = options.tenant || 'common';
-    var scope = (options.scope) ? options.scope.join(' ') : 'user.read';
+  const tenant = options.tenant || 'common';
+  const scope = options.scope ? options.scope.join(' ') : 'user.read';
 
-    var loginStyle = OAuth._loginStyle('azureAd', config, options);
-    var credentialToken = Random.secret();
+  const loginStyle = OAuth._loginStyle('azureAd', config, options);
+  const credentialToken = Random.secret();
 
-    var queryParams = {
-        client_id: config.clientId,
-        response_type: 'code',
-        redirect_uri: OAuth._redirectUri('azureAd', config),
-        scope: scope,
-        response_mode: 'query',
-        state: OAuth._stateParam(loginStyle, credentialToken),
-        prompt: options.loginPrompt || 'login',
-    };
+  const queryParams = {
+    client_id: config.clientId,
+    response_type: 'code',
+    redirect_uri: OAuth._redirectUri('azureAd', config),
+    scope,
+    response_mode: 'query',
+    state: OAuth._stateParam(loginStyle, credentialToken),
+    prompt: options.loginPrompt || 'login',
+  };
 
-    if (options.login_hint) {
-        queryParams.login_hint = options.login_hint;
-    }
-    if (options.domain_hint) {
-        queryParams.domain_hint = options.domain_hint;
-    }
+  if (options.login_hint) {
+    queryParams.login_hint = options.login_hint;
+  }
+  if (options.domain_hint) {
+    queryParams.domain_hint = options.domain_hint;
+  }
 
-    var queryParamsEncoded = _.map(queryParams, function(val, key) {
-        return key + '=' + encodeURIComponent(val);
-    });
+  const queryParamsEncoded = (queryParams || []).map(
+    (val, key) => `${key}=${encodeURIComponent(val)}`
+  );
 
-    var baseUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?`;
-    var loginUrl = baseUrl + queryParamsEncoded.join('&');
+  const baseUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?`;
+  const loginUrl = baseUrl + queryParamsEncoded.join('&');
 
-    OAuth.launchLogin({
-        loginService: "azureAd",
-        loginStyle: loginStyle,
-        loginUrl: loginUrl,
-        credentialRequestCompleteCallback: credentialRequestCompleteCallback,
-        credentialToken: credentialToken,
-        popupOptions: { height: 600 }
-    });
+  OAuth.launchLogin({
+    loginService: 'azureAd',
+    loginStyle,
+    loginUrl,
+    callback,
+    credentialToken,
+    popupOptions: { height: 600 },
+  });
 };
