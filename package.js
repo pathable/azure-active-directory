@@ -20,7 +20,6 @@ Package.onUse(api => {
     ['lib/resources.js', 'lib/serverHttp.js', 'resources/graph.js'],
     'server'
   );
-  api.addFiles('azure_ad_configure.js', 'client');
   api.addFiles('azure_ad_server.js', 'server');
   api.addFiles('azure_ad_client.js', 'client');
 });
