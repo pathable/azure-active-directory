@@ -5,8 +5,9 @@
 //   error.
 AzureAd.requestCredential = (...args) => {
   // support both (options, callback) and (callback).
-  const options = typeof args[0] === 'function' ? {} : args[0];
-  const callback = typeof args[0] === 'function' ? args[0] : args[1];
+  const isFirstArgFunction = typeof args[0] === 'function';
+  const options = isFirstArgFunction ? {} : args[0] || {};
+  const callback = isFirstArgFunction ? args[0] : args[1];
 
   const config = AzureAd.getConfiguration(true);
   if (!config) {
@@ -37,7 +38,7 @@ AzureAd.requestCredential = (...args) => {
     queryParams.domain_hint = options.domain_hint;
   }
 
-  const queryParamsEncoded = (queryParams || []).map(
+  const queryParamsEncoded = Object.entries(queryParams).map(
     (val, key) => `${key}=${encodeURIComponent(val)}`
   );
 
@@ -45,11 +46,11 @@ AzureAd.requestCredential = (...args) => {
   const loginUrl = baseUrl + queryParamsEncoded.join('&');
 
   OAuth.launchLogin({
-    loginService: 'azureAd',
     loginStyle,
     loginUrl,
-    callback,
     credentialToken,
+    loginService: 'azureAd',
+    credentialRequestCompleteCallback: callback,
     popupOptions: { height: 600 },
   });
 };
