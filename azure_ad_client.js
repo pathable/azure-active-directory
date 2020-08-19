@@ -39,7 +39,7 @@ AzureAd.requestCredential = (...args) => {
   }
 
   const queryParamsEncoded = Object.entries(queryParams).map(
-    (val, key) => `${key}=${encodeURIComponent(val)}`
+    ([key, value]) => `${key}=${encodeURIComponent(value)}`
   );
 
   const baseUrl = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize?`;
