@@ -9,7 +9,7 @@ AzureAd.requestCredential = (...args) => {
   const options = isFirstArgFunction ? {} : args[0] || {};
   const callback = isFirstArgFunction ? args[0] : args[1];
 
-  const config = AzureAd.getConfiguration(true);
+  const config = options.config || AzureAd.getConfiguration(true);
   if (!config) {
     callback && callback(new ServiceConfiguration.ConfigError());
     return;
