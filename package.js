@@ -1,6 +1,6 @@
 Package.describe({
   summary: 'Azure Active Directory OAuth flow',
-  version: '1.1.0',
+  version: '1.2.0-beta.1',
   name: 'sornii:azure-active-directory',
   git: 'https://github.com/Sornii/azure-active-directory',
 });
