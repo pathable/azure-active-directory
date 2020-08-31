@@ -1,15 +1,12 @@
 // Request AzureAd credentials for the user
-// @param options {optional}
-// @param credentialRequestCompleteCallback {Function} Callback function to call on
-//   completion. Takes one argument, credentialToken on success, or Error on
-//   error.
 AzureAd.requestCredential = (...args) => {
   // support both (options, callback) and (callback).
   const isFirstArgFunction = typeof args[0] === 'function';
   const options = isFirstArgFunction ? {} : args[0] || {};
   const callback = isFirstArgFunction ? args[0] : args[1];
 
-  const config = options.config || AzureAd.getConfiguration(true);
+  const config =
+    options.config || AzureAd.getConfiguration({ returnNullIfMissing: true });
   if (!config) {
     callback && callback(new ServiceConfiguration.ConfigError());
     return;

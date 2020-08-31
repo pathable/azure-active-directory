@@ -12,14 +12,18 @@ const hasOwn = Object.prototype.hasOwnProperty;
 AzureAd.retrieveCredential = (credentialToken, credentialSecret) =>
   OAuth.retrieveCredential(credentialToken, credentialSecret);
 
-const getTokensFromCode = code =>
-  AzureAd.http.getAccessTokensBase({
-    grant_type: 'authorization_code',
-    code,
-  });
+const getTokensFromCode = ({ code, tenantId }) =>
+  AzureAd.http.getAccessTokensBase(
+    {
+      grant_type: 'authorization_code',
+      code,
+    },
+    tenantId
+  );
 
-OAuth.registerService('azureAd', 2, null, query => {
-  const tokens = getTokensFromCode(query.code);
+OAuth.registerService('azureAd', 2, null, requestData => {
+  const { tenantId } = requestData;
+  const tokens = getTokensFromCode(requestData);
   const graphUser = AzureAd.resources.graph.getUser(tokens.accessToken);
   const serviceData = {
     accessToken: tokens.accessToken,
@@ -43,6 +47,7 @@ OAuth.registerService('azureAd', 2, null, query => {
   const emailAddress = graphUser.mail || graphUser.userPrincipalName;
 
   const options = {
+    tenantId,
     profile: {
       name: graphUser.displayName,
     },
