@@ -1,6 +1,6 @@
 Package.describe({
   summary: 'Azure Active Directory OAuth flow',
-  version: '1.3.5',
+  version: '1.3.6',
   name: 'pathable:azure-active-directory',
   git: 'https://github.com/pathable/azure-active-directory',
 });
