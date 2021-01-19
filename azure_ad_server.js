@@ -12,13 +12,14 @@ const hasOwn = Object.prototype.hasOwnProperty;
 AzureAd.retrieveCredential = (credentialToken, credentialSecret) =>
   OAuth.retrieveCredential(credentialToken, credentialSecret);
 
-const getTokensFromCode = ({ code, tenantId }) =>
+const getTokensFromCode = ({ code, tenantId, rootUrlFromRequest }) =>
   AzureAd.http.getAccessTokensBase(
     {
       grant_type: 'authorization_code',
       code,
     },
-    tenantId
+    tenantId,
+    rootUrlFromRequest
   );
 
 OAuth.registerService('azureAd', 2, null, requestData => {
