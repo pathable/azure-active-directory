@@ -1,12 +1,12 @@
 Package.describe({
   summary: 'Azure Active Directory OAuth flow',
-  version: '1.3.6',
+  version: '1.3.7',
   name: 'pathable:azure-active-directory',
   git: 'https://github.com/pathable/azure-active-directory',
 });
 
 Package.onUse(api => {
-  api.versionsFrom('1.11');
+  api.versionsFrom('1.12.1');
 
   api.use('oauth2', ['client', 'server']);
   api.use('oauth', ['client', 'server']);
